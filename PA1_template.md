@@ -1,9 +1,4 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document: 
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 We download the file from the URL https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip in order to get the same data. This data contains the information of movement activity from several devices like Fitbit, Nike FuelBand, Jawbone up. Our study is about the movement of people wearing these devices.
 
@@ -11,8 +6,8 @@ As we'll try to avoid bias in our analysis, we are going to exclude the missing 
 
 ## Loading and preprocessing the data
 
-```{r}
 
+```r
 if (!file.exists("activity.csv")) {
   if (!file.exists("activity.zip")){
     fileUrl <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
@@ -34,38 +29,52 @@ actrmna<-activity[!is.na(activity$steps),]
 #we add the mean per date
 stepsMean<-aggregate(actrmna$steps,list(actrmna$date),mean)
 names(stepsMean)<-c("date","mean")
-
-
 ```
 
 
 ## What is mean total number of steps taken per day?
 
-```{r}
-hist(stepsMean$mean, xlab="Mean of steps per day")
 
+```r
+hist(stepsMean$mean, xlab="Mean of steps per day")
 ```
+
+![plot of chunk unnamed-chunk-2](./PA1_template_files/figure-html/unnamed-chunk-2.png) 
 
 The mean and median are given below, along with the summary:
 
-```{r}
-summary(actrmna$steps)
 
+```r
+summary(actrmna$steps)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##     0.0     0.0     0.0    37.4    12.0   806.0
 ```
 
 ## What is the average daily activity pattern?
 
-```{r}
+
+```r
 #as we did with the date, we add the mean per interval
 intervalMean<-aggregate(steps ~ interval, actrmna,mean)
 plot(intervalMean$interval,intervalMean$steps, type="l", xlab="Interval", ylab="Mean of number of steps")
 ```
 
+![plot of chunk unnamed-chunk-4](./PA1_template_files/figure-html/unnamed-chunk-4.png) 
+
 
 The maximum number of steps is in the following interval, with the indicated mean of steps
 
-```{r}
+
+```r
 intervalMean[(intervalMean$steps==max(intervalMean$steps)),]
+```
+
+```
+##     interval steps
+## 104      835 206.2
 ```
 
 
@@ -73,15 +82,20 @@ intervalMean[(intervalMean$steps==max(intervalMean$steps)),]
 ## Imputing missing values
 
 Total number of missing values:
-```{r}
+
+```r
 dim(activity[is.na(activity),])[1]
+```
+
+```
+## [1] 2304
 ```
 
 
 We are going to replace missing values with the mean for that interval. The shape of the histogram must not have major changes adding them.
 
-```{r}
 
+```r
 actReplaceNa<-merge(activity,intervalMean, by="interval")
 indices<-which(is.na(actReplaceNa$steps.x))
 
@@ -92,33 +106,43 @@ names(meanRepNa)<-c("date","mean")
 hist(meanRepNa$mean, xlab="Mean of steps")
 ```
 
+![plot of chunk unnamed-chunk-7](./PA1_template_files/figure-html/unnamed-chunk-7.png) 
+
 Mean and median stay the same:
 
-```{r}
+
+```r
 summary(actReplaceNa$steps.x)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##     0.0     0.0     0.0    37.4    27.0   806.0
 ```
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-```{r echo=FALSE, results='hide'}
-library(ggplot2)
-Sys.setlocale("LC_TIME", "English")
+
+```
+## Warning: package 'ggplot2' was built under R version 3.1.1
 ```
 
 
 We compare the behavior of movement in weekends and weekdays.
 
-```{r}
+
+```r
 wd<-weekdays(as.Date(actReplaceNa$date))
 weekend<-which(wd=="Saturday" | wd=="Sunday")
 
 actReplaceNa$day.type<-"Weekdays"
 actReplaceNa$day.type[weekend]<-"Weekend"
 
-g<-ggplot(actReplaceNa, aes(interval,steps.x))
+g<-ggplot(actReplaceNa, aes(interval,steps.x), ylab="steps")
 g+geom_point()+facet_grid(. ~ day.type)+
   geom_line(method="lm")
-
 ```
+
+![plot of chunk unnamed-chunk-10](./PA1_template_files/figure-html/unnamed-chunk-10.png) 
 
